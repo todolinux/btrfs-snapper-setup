@@ -15,6 +15,7 @@ fi
 : "${LOG_FILE:?LOG_FILE is not set in config}"
 mkdir -p "$(dirname "$LOG_FILE")"
 touch "$LOG_FILE"
+chown $USER_CONFIG:$USER_CONFIG $LOG_FILE
 
 # Define log_message
 log_message() {
