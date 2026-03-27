@@ -156,7 +156,7 @@ btrfs-snapsetup install
 btrfs-snapsetup uninstall
 btrfs-snapsetup        # check + install
 ```
-## Example outpu
+## Example output
 ``` bash
 $ sudo btrfs-snapsetup check
 
