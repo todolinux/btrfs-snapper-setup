@@ -66,7 +66,7 @@ git rsync inotify-tools gawk build-essential snapper
 ```
 After installing Snapper, do not create the root configuration manually.
 
-Supported Distributions
+## Supported Distributions
 
 Tested on:
 
@@ -75,7 +75,7 @@ Ubuntu
 
 Other distributions may work but are not officially supported.
 
-Quick Start
+## Quick Start
 ``` bash
 git clone https://github.com/YOUR_USER/btrfs-snapper-setup.git
 cd btrfs-snapper-setup
@@ -92,11 +92,11 @@ chmod +x btrfs-snapsetup
 sudo ./btrfs-snapsetup check
 sudo ./btrfs-snapsetup install
 ```
-Configuration
+## Configuration
 
 The script uses a configuration file called btrfs-snapsetup.conf.
 
-Example configuration
+### Example configuration
 ``` bash
 # Target user for /home paths
 USER_CONFIG="stech"
@@ -147,14 +147,14 @@ FSTAB_OPTIONS=(
 ROOT_DEV="/dev/sda2"
 EFI_DEV="/dev/sda1"
 ```
-# Usage
+## Usage
 ```bash
 btrfs-snapsetup check
 btrfs-snapsetup install
 btrfs-snapsetup uninstall
 btrfs-snapsetup        # check + install
 ```
-# Example outpu
+## Example outpu
 ``` bash
 $ sudo btrfs-snapsetup check
 
@@ -165,11 +165,11 @@ $ sudo btrfs-snapsetup check
 
 System ready for installation
 ```
-How It Works
+## How It Works
 
 The installation consists of two phases:
 
-1. Requirement Checks
+### 1. Requirement Checks
 
 The script verifies:
 
@@ -178,7 +178,7 @@ Execution with sudo (not direct root)
 Required directories exist
 Partition configuration is valid
 No existing Snapper snapshots
-2. Installation Tasks
+### 2. Installation Tasks
 
 The script performs:
 
@@ -193,7 +193,7 @@ Perform rollback
 Create subvolumes
 Restore and update fstab
 Reinstall GRUB (chroot)
-Subvolume Layout
+## Subvolume Layout
 
 Default layout:
 
@@ -209,11 +209,11 @@ SUBVOL_DIRS=(
 ```
 This layout follows the openSUSE Btrfs scheme.
 
-Why this layout?
+### Why this layout?
 
 These directories are excluded from root snapshots, allowing:
 
-Booting from read-only snapshots
+## Booting from read-only snapshots
 Safer system recovery
 Reduced snapshot size
 Boot Behavior
@@ -228,16 +228,16 @@ Snapshots allow system recovery in case of failure.
 
 ⚠ Note: rollback does not fully restore system state due to excluded subvolumes.
 
-Special Case: /boot Subvolume
+## Special Case: /boot Subvolume
 
 This tool creates a dedicated @boot subvolume.
 
-Advantages
+## Advantages
 Always boots latest kernel
 No GRUB reinstall needed after snapshots
-Disadvantages
+## Disadvantages
 Kernel rollback not supported
-Uninstall
+## Uninstall
 
 Must be executed from the root subvolume.
 
@@ -254,12 +254,12 @@ Restores:
 
 ⚠ @boot is NOT removed.
 
-Limitations
+## Limitations
 Not compatible with complex existing Btrfs layouts
 No LUKS/LVM support
 No kernel rollback
 Manual permission fixes may be required
-Manual Full Reversion
+## Manual Full Reversion
 
 To fully revert:
 
@@ -269,18 +269,18 @@ Reboot
 
 Manual recovery from GRUB may be required.
 
-Notes About Permissions
+## Notes About Permissions
 
 If multiple users are included in SUBVOL_DIRS:
 
 Permissions must be adjusted manually
 Files are created using the executing user
-Contributing
+## Contributing
 
 Pull requests are welcome.
 
 For major changes, please open an issue first.
 
-License
+## License
 
 This project is licensed under the GPL License.
