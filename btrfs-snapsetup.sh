@@ -240,7 +240,7 @@ verify_conf_vars() {
     EFI_DEV_DETECTED=$(detect_efi_device)
     MNT_POINT_DETECTED="$MNT_POINT"
     ROOT_SUBVOL_DETECTED=$(get_current_subvol)
-    USER_DETECTED="$USER_CONFIG"
+    USER_DETECTED="$SUDO_USER"
 
     ALL_OK=true
 
