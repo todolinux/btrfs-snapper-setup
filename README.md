@@ -98,6 +98,8 @@ The script uses a configuration file called btrfs-snapsetup.conf.
 
 ### Example configuration
 ``` bash
+# btrfs-snapsetup.conf
+
 # Target user for /home paths
 USER_CONFIG="stech"
 
