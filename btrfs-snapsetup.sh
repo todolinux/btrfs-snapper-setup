@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-CONF_FILE="btrfs-syssetup.conf"
+CONF_FILE="btrfs-snapsetup.conf"
 
 # Load configuration
 if [[ -f "$CONF_FILE" ]]; then
