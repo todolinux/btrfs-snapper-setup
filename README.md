@@ -157,29 +157,39 @@ btrfs-snapsetup uninstall
 btrfs-snapsetup        # check + install
 btrfs-snapsetup pre-install  # create @ for Ubuntu - needs to reboot
 ```
-### Ubuntu (Important – Two-Stage Installation)
+## Ubuntu (Important – Two-Stage Installation)
 
-Ubuntu uses Btrfs differently than Debian. Instead of using a dedicated root subvolume (e.g. @), it mounts the top-level subvolume (ID 5) as /.
+Ubuntu uses Btrfs differently than Debian. By default, it mounts the top-level subvolume (`ID 5`) as `/` instead of using a dedicated root subvolume like `@`.
 
-Because of this, Snapper and rollback features will not work correctly unless a root subvolume is created first.
+Because of this, Snapper cannot work correctly out of the box (snapshots, rollback, and `.snapshots` layout will break).
 
-This script automatically handles it using a two-stage installation process:
+This script automatically handles Ubuntu using a **two-stage installation process**.
 
-#### Stage 1 – Pre-install (automatic)
+---
 
-On the first run (only if subvolid=5 is detected):
+### Stage 1 – Pre-install (automatic)
 
-A root subvolume (default: @) is created from /
-/etc/fstab is updated to use the new subvolume
-The Btrfs default subvolume is changed to @
+On the first run, if the system is detected as:
 
-⚠️ A reboot is required after this step.
+- Ubuntu **AND**
+- running on subvolume `ID 5`
 
-#### Stage 2 – Full installation
+the script will:
+
+- Create a root subvolume (default: `@`) from `/`
+- Update `/etc/fstab` to mount `/` from `@`
+- Set the Btrfs default subvolume to `@`
+
+⚠️ The system **must be rebooted** after this step.
+
+---
+
+### Stage 2 – Full installation
 
 After reboot:
 
-Verify the system is running from the new subvolume:
+1. Verify the system is now using the new root subvolume:
+
 ```bash
 findmnt /
 ```
