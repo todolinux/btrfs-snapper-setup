@@ -33,6 +33,26 @@ if [[ "$EUID" -ne 0 ]]; then
     exit 1
 fi
 
+detect_distro() {
+    if [[ -f /etc/os-release ]]; then
+        source /etc/os-release
+        CURRENT_DISTRO="$ID"
+    else
+        log_message "ERROR" "Cannot detect distribution: /etc/os-release not found."
+        return 1
+    fi
+
+    log_message "INFO" "Detected distro: $CURRENT_DISTRO"
+
+    if [[ "$CURRENT_DISTRO" != "$DISTRO" ]]; then
+        log_message "ERROR" "Unsupported distro. Expected: $DISTRO, Got: $CURRENT_DISTRO"
+        return 1
+    fi
+
+    log_message "OK" "Distribution check passed."
+    return 0
+}
+
 check_btrfs_root() {
     if findmnt -n -o FSTYPE / | grep -q btrfs; then
         log_message "OK" "Root FS: Btrfs detected."
@@ -443,6 +463,18 @@ uninstall_snapper() {
     log_message "OK" "Snapper completely removed and configuration cleaned."
 }
 
+create_root_subvol() {
+
+    local target_path="$MNT_POINT/$ROOT_SUBVOL"
+
+    log_message "INFO" "Creating root subvolume at $target_path..."
+    btrfs subvol snapshot / $target_path
+
+    log_message "INFO" "Setting subvol 256 as Default for next reboot..."
+    btrfs subvol set-default 256 /
+
+}
+
 create_subvol_snapshots() {
     local target_path="$MNT_POINT/$ROOT_SUBVOL/.snapshots"
     local mount_point="/.snapshots"
@@ -585,7 +617,7 @@ if [ -z "\$LATEST_KERNEL" ]; then
 fi
 
 cat << INNER_EOF
-menuentry "Debian 13 (Default BTRFS Subvolume - Auto)" --class linux --class gnu-linux {
+menuentry "$DISTRO (Default BTRFS Subvolume - Auto)" --class linux --class gnu-linux {
     insmod gzio
     insmod part_gpt
     insmod btrfs
@@ -594,8 +626,8 @@ menuentry "Debian 13 (Default BTRFS Subvolume - Auto)" --class linux --class gnu
     search --no-floppy --fs-uuid --set=root $UUID
 
     echo "Loading kernel \$LATEST_KERNEL from default subvolume..."
-    linux /@rootfs/boot/\$LATEST_KERNEL root=UUID=$UUID rw quiet splash
-    initrd /@rootfs/boot/\$LATEST_INITRD
+    linux /$ROOT_SUBVOL=/boot/\$LATEST_KERNEL root=UUID=$UUID rw quiet splash
+    initrd /$ROOT_SUBVOL=/boot/\$LATEST_INITRD
 }
 INNER_EOF
 EOF
@@ -649,6 +681,40 @@ update_fstab() {
     # Permisos
     chmod 644 "$TMP_FSTAB"
     log_message "INFO" "/etc/fstab updated successfully"
+}
+
+update_fstab_for_ubuntu() {
+    log_message "INFO" "Updating /etc/fstab for Ubuntu: mounting $ROOT_SUBVOL as root..."
+
+    local FSTAB="/etc/fstab"
+    local BACKUP="/etc/fstab_ubuntu_preinstall.bak"
+
+    # Backup del fstab
+    if [[ ! -f "$BACKUP" ]]; then
+        log_message "INFO" "Backing up current fstab to $BACKUP"
+        sudo cp "$FSTAB" "$BACKUP"
+    fi
+
+    # Detectar UUID del dispositivo raíz
+    local ROOT_UUID
+    ROOT_UUID=$(blkid -s UUID -o value "$ROOT_DEV")
+    if [[ -z "$ROOT_UUID" ]]; then
+        log_message "ERROR" "Cannot detect UUID for $ROOT_DEV"
+        return 1
+    fi
+
+    # Modificar línea de root
+    if grep -qE '^\s*UUID=.*\s+/\s+' "$FSTAB"; then
+        log_message "INFO" "Updating existing root entry to mount $ROOT_SUBVOL"
+        sudo sed -i -r "s|^\s*(UUID=[^[:space:]]+)\s+/\s+.*|\1 / btrfs defaults,subvol=$ROOT_SUBVOL 0 1|" "$FSTAB"
+    else
+        log_message "INFO" "Adding new root entry for $ROOT_SUBVOL"
+        echo "UUID=$ROOT_UUID / btrfs defaults,subvol=/$ROOT_SUBVOL 0 1" | sudo tee -a "$FSTAB" > /dev/null
+    fi
+
+    log_message "OK" "/etc/fstab updated successfully for Ubuntu pre-install."
+
+    update-grub
 }
 
 ensure_snapper_installed() {
@@ -1016,6 +1082,21 @@ run_checks() {
     verify_folder_parent       || HAS_ERRORS=1
     check_dependencies         || HAS_ERRORS=1
     check_no_snapper_configs   || HAS_ERRORS=1
+    detect_distro              || HAS_ERRORS=1
+
+    # Vefiry DISTRO
+
+    if [[ "$DISTRO" == "ubuntu" ]]; then
+    DEFAULT_ID=$(sudo btrfs subvol get-default / | awk '{print $NF}')
+    if [[ "$DEFAULT_ID" -eq 5 ]]; then
+        echo "*********************"
+        log_message "INFO" "Ubuntu detected with default subvol = 5, run btrfs-snapsetup pre-install"
+        echo "*********************"
+        return 1
+    else
+        log_message "INFO" "Ubuntu detected but default subvol != 5 (actual=$DEFAULT_ID), skipping Pre-Install-script."
+    fi
+    fi
 
     if [[ "$HAS_ERRORS" -ne 0 ]]; then
         log_message "ERROR" "One or more checks failed."
@@ -1048,6 +1129,13 @@ run_checks_uninstall() {
 # INSTALLATION
 #########################################
 
+pre_install_for_ubuntu(){
+
+    create_root_subvol
+    update_fstab_for_ubuntu
+}
+
+
 run_install() {
     log_message "INFO" "Starting installation..."
 
@@ -1056,14 +1144,14 @@ run_install() {
         log_message "ERROR" "Cannot proceed with installation: pre-checks failed."
         return 1
     fi
-
-    # Código de instalación real
     create_subvol_snapshots
     install_grub_btrfs
-    create_default_grub_entry
+    if [[ "$DISTRO" != "ubuntu" ]]; then
+        log_message "INFO" "$DISTRO detected, creating new default grub entry..."
+        create_default_grub_entry
+    fi
     update_fstab
     delete_snapshots_subvolumes
-#    ensure_snapper_installed
     initialize_snapper
     snapper_snapshot1
     snapper_rollback
@@ -1112,6 +1200,9 @@ COMMAND="$1"
 shift || true
 
 case "$COMMAND" in
+    pre-install)
+        pre_install_for_ubuntu
+        ;;
     check)
         run_checks
         ;;
@@ -1126,7 +1217,7 @@ case "$COMMAND" in
         rollback_logic
         ;;
     *)
-        echo "Usage: $0 {check|install|rollback|uninstall}"
+        echo "Usage: $0 {check|install|rollback|uninstall|pre_install}"
         exit 1
         ;;
 esac
