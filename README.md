@@ -70,7 +70,8 @@ After installing Snapper, do not create the root configuration manually.
 
 Tested on:
 
-Debian
+Debian 12, Debian 13
+Ubuntu 24.4
 
 Other distributions may work but are not officially supported.
 
