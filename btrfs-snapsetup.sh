@@ -723,8 +723,8 @@ ensure_snapper_installed() {
 initialize_snapper() {
     log_message "INFO" "Unmounting /.snapshots and deleting existing subvolume for Snapper initialization..."
     umount /.snapshots 2>/dev/null || true
-    if btrfs subvolume show "$MNT_POINT/@rootfs/.snapshots" &>/dev/null; then
-        btrfs subvolume delete "$MNT_POINT/@rootfs/.snapshots"
+    if btrfs subvolume show "$MNT_POINT/$ROOT_SUBVOL/.snapshots" &>/dev/null; then
+        btrfs subvolume delete "$MNT_POINT/$ROOT_SUBVOL/.snapshots"
         log_message "INFO" "Deleted existing .snapshots subvolume"
     else
         log_message "INFO" ".snapshots subvolume does not exist, skipping deletion"
