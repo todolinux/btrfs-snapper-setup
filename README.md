@@ -155,6 +155,7 @@ btrfs-snapsetup check
 btrfs-snapsetup install
 btrfs-snapsetup uninstall
 btrfs-snapsetup        # check + install
+btrfs-snapsetup pre-install  # create @ for Ubuntu - needs to reboot
 ```
 ## Example output
 ``` bash
