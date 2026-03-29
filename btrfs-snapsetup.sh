@@ -1087,7 +1087,7 @@ run_checks() {
     # Vefiry DISTRO
 
     if [[ "$DISTRO" == "ubuntu" ]]; then
-    DEFAULT_ID=$(sudo btrfs subvol get-default / | awk '{print $NF}')
+    DEFAULT_ID=$(sudo btrfs subvol get-default / | awk '{print $2}')
     if [[ "$DEFAULT_ID" -eq 5 ]]; then
         echo "*********************"
         log_message "INFO" "Ubuntu detected with default subvol = 5, run btrfs-snapsetup pre-install"
