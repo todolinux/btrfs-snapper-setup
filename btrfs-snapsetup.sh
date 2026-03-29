@@ -626,8 +626,8 @@ menuentry "$DISTRO (Default BTRFS Subvolume - Auto)" --class linux --class gnu-l
     search --no-floppy --fs-uuid --set=root $UUID
 
     echo "Loading kernel \$LATEST_KERNEL from default subvolume..."
-    linux /$ROOT_SUBVOL=/boot/\$LATEST_KERNEL root=UUID=$UUID rw quiet splash
-    initrd /$ROOT_SUBVOL=/boot/\$LATEST_INITRD
+    linux /$ROOT_SUBVOL/boot/\$LATEST_KERNEL root=UUID=$UUID rw quiet splash
+    initrd /$ROOT_SUBVOL/boot/\$LATEST_INITRD
 }
 INNER_EOF
 EOF
