@@ -686,32 +686,32 @@ update_fstab() {
 update_fstab_for_ubuntu() {
     log_message "INFO" "Updating /etc/fstab for Ubuntu: mounting $ROOT_SUBVOL as root..."
 
-    local FSTAB="/etc/fstab"
-    local BACKUP="/etc/fstab_ubuntu_preinstall.bak"
+    FSTAB="/etc/fstab"
+    BACKUP="/etc/fstab_ubuntu_preinstall.bak"
+    TMP_FSTAB="/tmp/fstab.new"
 
     # Backup del fstab
     if [[ ! -f "$BACKUP" ]]; then
         log_message "INFO" "Backing up current fstab to $BACKUP"
-        sudo cp "$FSTAB" "$BACKUP"
+        cp "$FSTAB" "$BACKUP"
     fi
 
     # Detectar UUID del dispositivo raíz
-    local ROOT_UUID
-    ROOT_UUID=$(blkid -s UUID -o value "$ROOT_DEV")
-    if [[ -z "$ROOT_UUID" ]]; then
+    UUID=$(blkid -s UUID -o value "$ROOT_DEV")
+    if [[ -z "$UUID" ]]; then
         log_message "ERROR" "Cannot detect UUID for $ROOT_DEV"
         return 1
     fi
 
-    # Modificar línea de root
-    if grep -qE '^\s*UUID=.*\s+/\s+' "$FSTAB"; then
-        log_message "INFO" "Updating existing root entry to mount $ROOT_SUBVOL"
-        sudo sed -i -r "s|^\s*(UUID=[^[:space:]]+)\s+/\s+.*|\1 / btrfs defaults,subvol=$ROOT_SUBVOL 0 1|" "$FSTAB"
-    else
-        log_message "INFO" "Adding new root entry for $ROOT_SUBVOL"
-        echo "UUID=$ROOT_UUID / btrfs defaults,subvol=/$ROOT_SUBVOL 0 1" | sudo tee -a "$FSTAB" > /dev/null
-    fi
+    # Remove root line
+    grep -v -E '^[^#].*\s+/\s+' "$BACKUP" > "$TMP_FSTAB"
 
+    # Add new line
+    log_message "INFO" "Updating existing root entry to mount $ROOT_SUBVOL"
+    echo "UUID=$UUID / btrfs defaults,subvol=/$ROOT_SUBVOL 0 1" >> "$TMP_FSTAB"
+
+    # Replace fstab
+    cp "$TMP_FSTAB" "$FSTAB"
     log_message "OK" "/etc/fstab updated successfully for Ubuntu pre-install."
 
     update-grub
