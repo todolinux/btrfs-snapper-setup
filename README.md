@@ -72,6 +72,7 @@ Tested on:
 
 Debian 12, Debian 13
 Ubuntu 24.4
+Linuxmint 22
 
 Other distributions may work but are not officially supported.
 
