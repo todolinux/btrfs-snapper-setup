@@ -1,5 +1,8 @@
 # btrfs-snapper-setup
 
+https://youtu.be/PkQF579oXNA
+[![Watch the video]([https://img.youtube.com/vi/VIDEO_ID/maxresdefault.jpg](https://youtu.be/PkQF579oXNA))]([https://www.youtube.com/watch?v=VIDEO_ID](https://youtu.be/PkQF579oXNA))
+
 Convert a standard Linux installation into a Btrfs snapshot-based system
 with rollback support (similar to openSUSE).
 
