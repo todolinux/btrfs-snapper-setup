@@ -116,9 +116,6 @@ ROOT_SUBVOL="@rootfs"
 # Top-level mount point (subvolid=5)
 MNT_POINT="/mnt/btrfs_top"
 
-# Default subvolume for boot
-DEFAULT_SUBVOL_NAME="@rootfs"
-
 # Subvolumes to manage
 SUBVOL_DIRS=(
     "/boot"
