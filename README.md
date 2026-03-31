@@ -17,24 +17,23 @@ This project installs the `btrfs-snapsetup` command.
 
 This tool automates the process of transforming a standard Linux installation
 into a snapshot-based system using Btrfs and Snapper.
+It is ment to work as a "post install" tool.
 
-It provides:
+What it does:
 
-- Automatic Btrfs subvolume layout
-- Snapper integration
-- GRUB snapshot boot entries (via grub-btrfs)
-- Rollback-ready system design
+- Creates btrfs subvolume layout for snapper
+- Snapper config
+- Install grub-btrfs for automated grub entries
 - openSUSE-inspired structure
 
 ---
 
 ## ⚠ WARNING
 
-This script performs **deep and potentially destructive system modifications**, including:
+This script performs **tasks that can make deep system modifications**, including:
 
-- Filesystem restructuring
 - Btrfs subvolume creation
-- Bootloader configuration
+- Add Bootloader entries
 - Snapper setup
 - `/etc/fstab` modification
 
@@ -48,7 +47,7 @@ This tool is intended for users familiar with:
 
 - Linux boot process
 - Btrfs filesystem
-- System recovery procedures
+- Snapper tools
 
 ---
 
@@ -80,17 +79,10 @@ Debian 12, Debian 13
 Ubuntu 24.4
 Linuxmint 22
 
-Other distributions may work but are not officially supported.
+Other distributions may work but are not officially supported nor tested.
 
 ## Quick Start
 ``` bash
-git clone https://github.com/YOUR_USER/btrfs-snapper-setup.git
-cd btrfs-snapper-setup
-
-chmod +x btrfs-snapsetup
-
-sudo ./btrfs-snapsetup check
-sudo ./btrfs-snapsetup install
 git clone https://github.com/YOUR_USER/btrfs-snapper-setup.git
 cd btrfs-snapper-setup
 
@@ -125,15 +117,11 @@ SUBVOL_DIRS=(
     "/root"
     "/usr/local"
     "/home/$USER_CONFIG/Videos"
-    "/home/$USER_CONFIG/opencloud"
     "/home/$USER_CONFIG/Pictures"
-    "/home/$USER_CONFIG/Nextcloud"
     "/home/$USER_CONFIG/Music"
     "/home/$USER_CONFIG/Downloads"
     "/home/$USER_CONFIG/.local/share/Trash"
     "/home/$USER_CONFIG/.cache/BraveSoftware"
-    "/home/$USER_CONFIG/.config/BraveSoftware"
-    "/home/$USER_CONFIG/.cache/thorium"
     "/home/$USER_CONFIG/.cache/spotify"
 )
 
@@ -180,7 +168,7 @@ On the first run, if the system is detected as:
 
 the script will:
 
-- Create a root subvolume (default: `@`) from `/`
+- Create a root subvolume default: `@` (snapshot of `/`)
 - Update `/etc/fstab` to mount `/` from `@`
 - Set the Btrfs default subvolume to `@`
 
@@ -202,18 +190,7 @@ If @ is the result run the script again with no options for full installation:
 sudo ./btrfs-snapsetup.sh
 ```
 The installation will now proceed normally.
-## Example output
-``` bash
-$ sudo btrfs-snapsetup check
-
-✔ Root filesystem OK
-✔ Running from root subvolume
-✔ Snapper not initialized
-✔ Configuration valid
-
-System ready for installation
-```
-## How It Works
+## Other Distros like Debian or Linuxmint
 
 The installation consists of two phases:
 
@@ -261,10 +238,9 @@ This layout follows the openSUSE Btrfs scheme.
 
 These directories are excluded from root snapshots, allowing:
 
-## Booting from read-only snapshots
-Safer system recovery
-Reduced snapshot size
-Boot Behavior
+- Booting from read-only snapshots
+- Safer system recovery
+- Reduced snapshot size
 
 After installation, GRUB includes:
 
@@ -284,7 +260,7 @@ This tool creates a dedicated @boot subvolume.
 Always boots latest kernel
 No GRUB reinstall needed after snapshots
 ## Disadvantages
-Kernel rollback not supported
+Kernel rollback not supported out of the box, a boot snapper config is needed.
 ## Uninstall
 
 Must be executed from the root subvolume.
